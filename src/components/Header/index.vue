@@ -7,8 +7,8 @@
           <p>尚品汇欢迎您！</p>
           <p>
             <span>请</span>
-            <a href="###">登录</a>
-            <a href="###" class="register">免费注册</a>
+            <router-link to="/login">登录</router-link>
+            <router-link to="/register" class="register">免费注册</router-link>
           </p>
         </div>
         <div class="typeList">
@@ -26,18 +26,23 @@
     <!--头部第二行 搜索区域-->
     <div class="bottom">
       <h1 class="logoArea">
-        <a class="logo" title="尚品汇" href="###" target="_blank">
+        <router-link class="logo" title="尚品汇" to="/home">
           <img src="./images/logo.png" alt="" />
-        </a>
+        </router-link>
       </h1>
       <div class="searchArea">
         <form action="###" class="searchForm">
           <input
+            v-model="keyword"
             type="text"
             id="autocomplete"
             class="input-error input-xxlarge"
           />
-          <button class="sui-btn btn-xlarge btn-danger" type="button">
+          <button
+            class="sui-btn btn-xlarge btn-danger"
+            type="button"
+            @click="searchInfo"
+          >
             搜索
           </button>
         </form>
@@ -47,7 +52,32 @@
 </template>
 
 <script>
-export default {};
+export default {
+  data() {
+    return {
+      keyword: "",
+    };
+  },
+  methods: {
+    searchInfo() {
+      // 路由传参：
+      // 写法一：普通字符串
+      // this.$router.push("/search/" + this.keyword + "?k=" + this.keyword.toUpperCase());
+      // 写法二：模板字符串
+      // this.$router.push(`/search/${this.keyword}?k=${this.keyword.toUpperCase()}`);
+      // 写法三：对象写法（常用，必须使用命名路由）
+      this.$router.push({
+        name: "search",
+        params: {
+          keyword: this.keyword,
+        },
+        query: {
+          kwd: this.keyword.toUpperCase(),
+        },
+      });
+    },
+  },
+};
 </script>
 
 <style lang="less" scoped>

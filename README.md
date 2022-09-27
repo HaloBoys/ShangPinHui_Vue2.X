@@ -73,15 +73,108 @@ npm install vue-router@3
 3. 获取服务器的数据动态展示
 4. 完成相应的动态业务逻辑
 
-# 架构设计
+# 路由/非路由组件
+
+路由组件与非路由组件的区别？
+1. 路由组件一般放置在 pages|views 文件夹，非路由组件一般放置components文件夹中
+2. 路由组件一般需要在 router 文件夹中进行注册（使用的即为组件的名字）,非路由组件在使用的时候，一般都是以标签的形式使用
+3. **注册完路由，不管路由路由组件、还是非路由组件身上都有 `$route` 、 `$router` 属性**
 
 ## 非路由组件
 
-Header
-
-Footer
+1. Header
+2. Footer
 
 ![20220926171028](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/20220926171028.png)
 
-## 路由组件设计
+Footer 组件的显示与隐藏：
+
+只有当 Home、Search 组件显示时 Footer 组件才显示，否则隐藏。
+
+方案一：通过路径判断：（不推荐）
+
+```html
+<Footer v-show="$route.path == '/home' || $route.path == '/search'"></Footer>
+```
+
+方案一：利用路由元信息（推荐）
+
+1. 在路由规则中为路由定义 meta 元信息
+```javascript
+routes: [{
+ path: "/",
+ component: Home,
+ meta: {
+   showFooter: true
+ }
+}, {
+ path: "/home",
+ component: Home,
+ meta: {
+   showFooter: true
+ }
+},
+```
+2. 在组件中根据路由 meta 元信息控制显示与隐藏
+```html
+<Footer v-show="$route.meta.showFooter"></Footer>
+```
+
+## 路由组件
+
+1. Home
+2. Login
+3. Register
+4. Search
+
+目录存放：
+
+components 文件夹：经常放置非路由组件（共用全局组件）
+pages | views文件夹：经常放置路由组件
+
+# 静态组件拆分
+
+## 全局组件
+
+### TypeNav
+
+![20220927145257](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/20220927145257.png)
+
+TypeNav 三级联动组件因为要在多个组件中使用，所以注册为全局组件
+
+
+## Home
+
+### ListContainer
+
+![20220927151117](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/20220927151117.png)
+
+### Recommend
+
+![20220927151452](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/20220927151452.png)
+
+### Rank
+
+### Like
+
+### Floor
+
+### Brand
+
+## Login
+
+## Register
+
+## Search
+
+# 接口相关
+
+http://gmall-h5-api.atguigu.cn
+
+http://39.98.123.211:8510
+
+## Axios 二次封装
+
+
+
 
