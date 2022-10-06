@@ -17,6 +17,10 @@ export default {
     Header,
     Footer,
   },
+  mounted() {
+    // TypeNav 接口请求优化：由于每次加载创建 TypeNav 组件都会发送请求请求数据，而这些数据没有必要重复请求。所以把这个调用放在 App 根组件中调用。
+    this.$store.dispatch("getTypeNavList");
+  },
 };
 </script>
 

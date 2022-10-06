@@ -4,6 +4,9 @@ import Home from '@/pages/Home'
 import Register from '@/pages/Register'
 import Search from '@/pages/Search'
 import Login from '@/pages/Login'
+import Detail from '@/pages/Detail'
+
+// 解决编程式导航多次执行报错 （NavigationDuplicated）
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location, onResolve, onReject) {
@@ -58,5 +61,18 @@ export default new VueRouter({
     meta: {
       showFooter: false
     }
-  }]
+  }, {
+    path: "/detail/:skuid",
+    component: Detail,
+    meta: {
+      showFooter: true
+    }
+  }],
+  // 路由滚动行为
+  scrollBehavior(to, from, savedPosition) {
+    // 当切换到新路由时，滚动到顶部。
+    return {
+      y: 0
+    }
+  }
 })

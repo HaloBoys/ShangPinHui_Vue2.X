@@ -41,7 +41,7 @@
           <button
             class="sui-btn btn-xlarge btn-danger"
             type="button"
-            @click="searchInfo"
+            @click="searchInfo()"
           >
             搜索
           </button>
@@ -58,6 +58,9 @@ export default {
       keyword: "",
     };
   },
+  mounted() {
+    this.$bus.$on("clean-search", this.cleanSearch);
+  },
   methods: {
     searchInfo() {
       // 路由传参：
@@ -66,15 +69,26 @@ export default {
       // 写法二：模板字符串
       // this.$router.push(`/search/${this.keyword}?k=${this.keyword.toUpperCase()}`);
       // 写法三：对象写法（常用，必须使用命名路由）
-      this.$router.push({
-        name: "search",
-        params: {
-          keyword: this.keyword,
-        },
-        query: {
-          kwd: this.keyword.toUpperCase(),
-        },
-      });
+      // this.$router.push({
+      //   name: "search",
+      //   params: {
+      //     keyword: this.keyword,
+      //   },
+      // });
+      // 合并参数：
+      if (this.$route.query) {
+        let location = {
+          name: "search",
+          params: {
+            keyword: this.keyword,
+          },
+        };
+        location.query = this.$route.query;
+        this.$router.push(location);
+      }
+    },
+    cleanSearch() {
+      this.keyword = "";
     },
   },
 };

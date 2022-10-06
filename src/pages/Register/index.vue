@@ -1,7 +1,5 @@
 <template>
-  <div>
-    我是 Register 组件！
-  </div>
+  <div>我是 Register 组件！</div>
 </template>
 
 <script>
