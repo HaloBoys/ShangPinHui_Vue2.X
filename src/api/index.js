@@ -55,11 +55,59 @@ export const getSearchList = (params) => {
   })
 }
 
-// getDetailData
+// reqGetDetailItem
 
-export const getDetailItem = (skuid) => {
+export const reqGetDetailItem = (skuid) => {
   return service({
     url: `/item/${skuid}`,
+    method: "get",
+  })
+}
+
+// reqAddOrUpdateShopCar 添加/更新购物车
+
+/* 
+  /api/cart/addToCart/{ skuid }/{ skunum }  POST
+*/
+
+export const reqAddOrUpdateShopCar = (skuid, skunum) => {
+  return service({
+    url: `/cart/addToCart/${skuid}/${skunum}`,
+    method: "post",
+  })
+}
+
+// reqGetCartList
+
+export const reqGetCartList = () => {
+  return service({
+    url: "/cart/cartList",
+    method: "get",
+  })
+}
+
+// reqDelCartList 删除购物车商品
+
+export const reqDelCartList = (skuid) => {
+  return service({
+    url: `/cart/deleteCart/${skuid}`,
+    method: "delete",
+  })
+}
+
+// reqUpdateCartChecked 商品选中状态修改
+
+/* 
+  请求地址：/api/cart/checkCart/{skuID}/{isChecked}
+  参数名称	类型	 是否必选	描述
+  skuID	    string 	Y	    商品ID
+  isChecked	string 	Y	    商品选中状态   0 代表取消选中 1 代表选中
+  请求方式：GET
+*/
+
+export const reqUpdateCartChecked = (skuid, checknum) => {
+  return service({ 
+    url: `/cart/checkCart/${skuid}/${checknum}`,
     method: "get",
   })
 }

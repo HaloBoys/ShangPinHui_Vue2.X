@@ -22,9 +22,9 @@
         <!-- 左侧放大镜区域 -->
         <div class="previewWrap">
           <!--放大镜效果-->
-          <Zoom />
+          <Zoom :skuImageList="skuInfo.skuImageList" />
           <!-- 小图列表 -->
-          <ImageList />
+          <ImageList :skuImageList="skuInfo.skuImageList" />
         </div>
         <!-- 右侧选择区域布局 -->
         <div class="InfoWrap">
@@ -78,42 +78,45 @@
             </div>
           </div>
 
+          <!-- 售卖属性 -->
           <div class="choose">
             <div class="chooseArea">
               <div class="choosed"></div>
-              <dl>
-                <dt class="title">选择颜色</dt>
-                <dd changepirce="0" class="active">金色</dd>
-                <dd changepirce="40">银色</dd>
-                <dd changepirce="90">黑色</dd>
-              </dl>
-              <dl>
-                <dt class="title">内存容量</dt>
-                <dd changepirce="0" class="active">16G</dd>
-                <dd changepirce="300">64G</dd>
-                <dd changepirce="900">128G</dd>
-                <dd changepirce="1300">256G</dd>
-              </dl>
-              <dl>
-                <dt class="title">选择版本</dt>
-                <dd changepirce="0" class="active">公开版</dd>
-                <dd changepirce="-1000">移动版</dd>
-              </dl>
-              <dl>
-                <dt class="title">购买方式</dt>
-                <dd changepirce="0" class="active">官方标配</dd>
-                <dd changepirce="-240">优惠移动版</dd>
-                <dd changepirce="-390">电信优惠版</dd>
+              <dl v-for="spuSaleAttr in spuSaleAttrList" :key="spuSaleAttr.id">
+                <dt class="title">{{ spuSaleAttr.saleAttrName }}</dt>
+                <dd
+                  v-for="spuSaleAttrVal in spuSaleAttr.spuSaleAttrValueList"
+                  :key="spuSaleAttrVal.id"
+                  :class="{ active: spuSaleAttrVal.isChecked == 1 }"
+                  @click="
+                    saleAttrClickHandler(
+                      spuSaleAttrVal,
+                      spuSaleAttr.spuSaleAttrValueList
+                    )
+                  "
+                >
+                  {{ spuSaleAttrVal.saleAttrValueName }}
+                </dd>
               </dl>
             </div>
             <div class="cartWrap">
               <div class="controls">
-                <input autocomplete="off" class="itxt" />
-                <a href="javascript:" class="plus">+</a>
-                <a href="javascript:" class="mins">-</a>
+                <input
+                  autocomplete="off"
+                  class="itxt"
+                  v-model="goodsCount"
+                  @change="itxtChange"
+                />
+                <a href="javascript:" class="plus" @click="goodsCount++">+</a>
+                <a
+                  href="javascript:"
+                  class="mins"
+                  @click="goodsCount > 1 ? goodsCount-- : (goodsCount = 1)"
+                  >-</a
+                >
               </div>
               <div class="add">
-                <a href="javascript:">加入购物车</a>
+                <a href="javascript:" @click="addShopCarHandler">加入购物车</a>
               </div>
             </div>
           </div>
@@ -121,8 +124,8 @@
       </div>
     </section>
 
-    <!-- 内容详情页 -->
-    <section class="product-detail">
+    <!-- 内容详情页 静态数据 -->
+    <!-- <section class="product-detail">
       <aside class="aside">
         <div class="tabWraped">
           <h4 class="active">相关分类</h4>
@@ -347,7 +350,7 @@
           </div>
         </div>
       </div>
-    </section>
+    </section> -->
   </div>
 </template>
 
@@ -363,6 +366,11 @@ export default {
     ImageList,
     Zoom,
   },
+  data() {
+    return {
+      goodsCount: 1,
+    };
+  },
   mounted() {
     this.$store.dispatch("getDetailItem", this.$route.params.skuid);
   },
@@ -370,7 +378,59 @@ export default {
     ...mapState({
       detailItem: (state) => state.detail.detailItem,
     }),
-    ...mapGetters(["categoryView", "skuInfo"]),
+    ...mapGetters(["categoryView", "skuInfo", "spuSaleAttrList"]),
+
+    // 传给 Zoom 组件的图片数据
+    // skuImageList() {
+    //   // 数据校验：数据为 undefined 返回 [] 防止控制台报错
+    //   return this.skuInfo.skuImageList || [];
+    // },
+  },
+  methods: {
+    /* 
+      1. spuSaleAttrVal: 被点击的元素对象
+      2. spuSaleAttrValueList: 被点击的元素对象所在的数组
+    */
+    saleAttrClickHandler(spuSaleAttrVal, spuSaleAttrValueList) {
+      // 排他思想
+      spuSaleAttrValueList.forEach((element) => {
+        element.isChecked = 0;
+      });
+      spuSaleAttrVal.isChecked = 1;
+    },
+    itxtChange(event) {
+      let count = event.target.value * 1;
+      // 输入数据合法校验并校正
+      if (isNaN(count)) {
+        this.goodsCount = 1;
+      } else if (count <= 1) {
+        this.goodsCount = 1;
+      } else {
+        this.goodsCount = parseInt(count);
+      }
+    },
+    // 添加购物车
+    async addShopCarHandler() {
+      try {
+        // 接收接口返回的数据，数据是 Promise 使用 async await 简化
+        await this.$store.dispatch("addOrUpdateShopCar", {
+          skuid: this.$route.params.skuid,
+          skunum: this.goodsCount,
+        });
+        // 添加逻辑
+        // 1. 跳转 addcartsuccess 组件，并携带商品个数
+        this.$router.push({
+          name: "addcartsuccess",
+          query: {
+            skunum: this.goodsCount,
+          },
+        });
+        // 2. 将当前商品存储到 sessionStorage
+        window.sessionStorage.setItem("SKUOBJ", JSON.stringify(this.skuInfo));
+      } catch (error) {
+        alert(error.message);
+      }
+    },
   },
 };
 </script>
@@ -530,8 +590,8 @@ export default {
                 border-left: 1px solid #eee;
 
                 &.active {
-                  color: green;
-                  border: 1px solid green;
+                  color: #e1251b;
+                  border: 1px solid #e1251b;
                 }
               }
             }

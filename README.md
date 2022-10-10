@@ -548,45 +548,62 @@ export default {
 
 #### Pagination 实现思路
 
-1. 分页起始数字和结束数字算法：(定义计算属性，计算出连续的页码（Continues）的**起始数字（start）**与**结束数字(end)**【连续页码数字至少是 5】)
-   1. 当 Continues > TotalPage （总页数没有连续页码多）
-      1. start = 1
-      2. end = TotalPage
-   2. 当 Continues < TotalPage （总页数比连续页码多）
-      1. start = PageNo - parseInt(Continues/2)
-      2. end = PageNo + parseInt(Continues/2)
-   3. 起始数字（start）与结束数字(end) 不正常的现象：
-      1. 当 start < 0 时，解决方案：
-         1. start = 1
-         2. end = Continues
-      2. 当 end > TotalPage (end 大于总页码) 解决方案：
-         1. end = TotalPage
-         2. start = TotalPage - Continues
-2. 分页器动态展示页码
-   1. v-for 遍历页码 end 数字，只有当元素 > start 时才展示
-   2. 顶端`上一页`页码的禁用：当 PageNo = 1 时
-   3. 顶端`1`页码的显示与隐藏：当 start > 1 时，顶端1页码显示，否则隐藏
-   4. 顶端`...`页码的显示与隐藏: 当 start > 2 时，顶端`...`页码显示，否则隐藏
-   5. 底部`下一页`页码的禁用：当 PageNo = TotalPage 时
-   6. 底部`总`页码的显示与隐藏：当 end < TotalPage 时，底部`总`页码的显示，否则隐藏
-   7. 底部`...`页码的显示与隐藏: 当 end < TotalPage - 1 时，底部`...`页码显示，否则隐藏
-3. 绑定服务器数据
-   1. 相关属性绑定：
-      1. PageNo: searchParams.pageNo
-      2. PageSize: searchParams.pageSize
-      3. Total: 在 vuex 中获取
-      4. Continues: 5
-   2. 页码点击数据传递（自定义事件）
-      1. 顶端`上一页`页码点击：传递 PageNo - 1
-      2. 顶端`1`页码点击：传递  1
-      3. `连续页码`点击：传递被点击的页码数
-      4. 底部`下一页`点击：：传递 PageNo + 1
-      5. 底部`总`页码点击：传递总页码
-   3. 整理传递过来的数据，重新发送请求
-4. 分页器添加类名
-   1. 顶端`1`：`:class = { active:PageNo == 1 }`
-   2. 连续页码：`:class = { active:PageNo == page }`
-   3. 底部`总`页码：`:class = { active:PageNo == TotalPage }`
+计算总页数(根据已知条件): 
+
+```javascript
+computed: {
+  // 总页数
+  totalPage() {
+    return Math.ceil(this.total / this.pageSize);
+  },
+}
+```
+
+连续页码实现思路: 
+
+1. 定义计算属性，并定义连续的页码（continues）的**起始数字（start）**与**结束数字(end)**
+2. 当总页数没有连续页码多
+   1. start = 1
+   2. end = totalPage
+3. 当总页数比连续页码多
+   1. start = this.pageNo - parseInt(this.continue / 2);
+   2. end = this.pageNo + parseInt(this.continue / 2);
+4. 纠正不正常的两种情况：
+   1. start < 1 
+      1. start = 1;
+      1. end = this.continue;
+   2. end > totalPage
+      1. end = this.totalPage;
+      2. start = this.totalPage - this.continue + 1;
+
+分页 UI 渲染相关: 
+
+使用 v-for 遍历页码结束数字 end ，且只有当元素 >= start 时才展示
+
+相关按钮的显示与隐藏逻辑: 
+
+1. 顶端`上一页`页码的禁用：当 pageNo = 1 时
+2. 顶端`1`页码的显示与隐藏：当 start > 1 时，顶端 1 页码显示，否则隐藏
+3. 顶端`...`页码的显示与隐藏: 当 start > 2 时，顶端`...`页码显示，否则隐藏
+4. 底部`下一页`页码的禁用：当 pageNo = totalPage 时
+5. 底部`...`页码的显示与隐藏: 当 end < totalPage - 1 时，底部`...`页码显示，否则隐藏
+6. 底部`总`页码的显示与隐藏：当 end < totalPage 时，底部`总`页码的显示，否则隐藏
+
+按钮类名绑定: 
+
+1. 顶端`1`：`:class = { active:pageNo == 1 }`
+2. 连续页码：`:class = { active:pageNo == page }`
+3. 底部`总`页码：`:class = { active:pageNo == totalPage }`
+
+按钮点击传递页码: 
+
+在按钮点击的回调函数中将传递过来的页码赋值给 pageNo
+
+1. 顶端`上一页`页码点击：传递 pageNo - 1
+2. 顶端`1`页码点击：传递  1
+3. `连续页码`点击：传递被点击的页码数
+4. 底部`下一页`点击：：传递 pageNo + 1
+5. 底部`总`页码点击：传递总页码
 
 ## Home
 
@@ -879,10 +896,431 @@ const router = createRouter({
 })
 ```
 
-### Detail 组件获取服务器数据并渲染
+### Detail 组件获取服务器数据
 
 1. 接口相关：
    1. 请求地址 & 参数：/api/item/{ skuid }
    2. 请求方式：Get
 2. Vuex 新建 detail 模块
 3. Detail 组件调用 vuex 并传递 skuid 获取数据
+
+### Detail 组件售卖属性相关
+
+#### 售卖属性数据
+
+通过 vuex getters 简化，使用 v-for 渲染
+
+```javascript
+spuSaleAttrList(state) {
+  return state.detailItem.spuSaleAttrList || [];
+}
+```
+
+#### 售卖属性点击功能
+
+![售卖属性](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/%E5%94%AE%E5%8D%96%E5%B1%9E%E6%80%A7.gif)
+
+点击高亮（排他思想）
+
+通过元素对象身上 `isChecked` 属性决定当前元素是否被选中。
+
+```javascript
+methods: {
+ /* 
+   1. spuSaleAttrVal: 被点击的元素对象
+   2. spuSaleAttrValueList: 被点击的元素对象所在的数组
+ */
+ saleAttrClickHandler(spuSaleAttrVal, spuSaleAttrValueList) {
+   // 排他思想
+   spuSaleAttrValueList.forEach((element) => {
+     element.isChecked = 0;
+   });
+   spuSaleAttrVal.isChecked = 1;
+ },
+},
+```
+
+### Detail 组件商品数量操作
+
+1. 加减按钮
+2. 用户输入
+   1. 输入不合法
+   2. 输入 < 0
+   3. 输入为小数
+
+```html
+<div class="controls">
+  <input
+    autocomplete="off"
+    class="itxt"
+    v-model="goodsCount"
+    @change="itxtChange"
+  />
+  <a href="javascript:" class="plus" @click="goodsCount++">+</a>
+  <a
+    href="javascript:"
+    class="mins"
+    @click="goodsCount > 1 ? goodsCount-- : (goodsCount = 1)"
+    >-</a
+  >
+</div>
+```
+
+```javascript
+itxtChange(event) {
+  let count = event.target.value * 1;
+  if (isNaN(count)) {
+    this.goodsCount = 1;
+  } else if (count <= 1) {
+    this.goodsCount = 1;
+  } else {
+    this.goodsCount = parseInt(count);
+  }
+},
+```
+
+### Detail 加入购物车功能
+
+BUG: 商品的购买属性在购物车中不能显示的问题。
+
+1. 发请求（点击购物车按钮发送请求，将当前产品及数量发送至服务器）
+   1. 编写请求接口（reqAddOrUpdateShopCar），接收两个参数：skuid skunum
+   2. vuex 中编写 action （addOrUpdateShopCar）
+   3. 点击按钮触发 action
+2. 服务器存储成功之后，路由跳转 addCartSuccess 组件
+   1. 接收 vuex 中接口返回的状态
+      1. addOrUpdateShopCar 返回的是一个 Promise
+      2. 成功返回 ok
+      3. 失败返回 Error 实例
+   2. 点击事件中 try catch 
+   3. 如果成功，跳转 addCartSuccess 组件并携带产品信息
+
+### Detail 加入购物车并跳转 addCartSuccess 组件
+
+1. 参数传递（当前商品对象）
+   1. query 传递【不推荐，地址栏太乱】
+   2. 本地存储（sessionStorage）
+      1. 只通过 params 携带产品个数
+      2. 商品对象存储在 sessionStorage 中
+2. 数据绑定
+
+### Zoom（放大镜组件）
+
+#### 展示数据
+
+在 Detail 组件中通过 props 将图片数据传递给 Zoom 组件
+
+问题：请求还没有回来的时候传递过去的是 undefined 导致控制台报错 解决方案：
+
+1. 方法一：通过计算属性进行判断，如果是 undefined 则返回一个空数组：
+```javascript
+skuImageList() {
+  // 数据为 undefined 返回 [] 防止控制台报错
+  return this.skuInfo.skuImageList || [];
+},
+```
+2. 方法二：在子组件中接收 props (并设置默认值)
+```javascript
+props: {
+  skuImageList: {
+    default() {
+      return [];
+    },
+  },
+},
+```
+
+#### 放大镜效果
+
+![放大镜效果](https://cdn.jsdelivr.net/gh/HaloBoys/PicGoMyDevice/img/202210080044466.gif)
+
+1. 给容器绑定鼠标移动事件，并在处理函数中计算出 mask 的位移
+   1. left
+   2. top
+2. 处理边界情况
+3. bigImg 二倍
+
+```javascript
+moveHandler(event) {
+  let mask = this.$refs.mask;
+  let bigImg = this.$refs.bigImg;
+
+  let left = event.offsetX - mask.offsetWidth / 2;
+  let top = event.offsetY - mask.offsetHeight / 2;
+
+  // 处理边界(注意是在赋值之前判断)
+  if (left <= 0) left = 0;
+  if (left >= mask.offsetWidth) left = mask.offsetWidth;
+  if (top <= 0) top = 0;
+  if (top >= mask.offsetHeight) top = mask.offsetHeight;
+
+  mask.style.left = left + "px";
+  mask.style.top = top + "px";
+
+  // 右侧大图
+  bigImg.style.left = -2 * left + "px";
+  bigImg.style.top = -2 * top + "px";
+}
+```
+
+### ImageList（小轮播组件）
+
+数据：和 Zoom 放大镜组件使用同一份数据
+
+#### Swiper
+
+```javascript
+watch: {
+ skuImageList: {
+   handler() {
+     this.$nextTick(() => {
+       new Swiper(".swiper-container", {
+         // 如果需要前进后退按钮
+         navigation: {
+           nextEl: ".swiper-button-next",
+           prevEl: ".swiper-button-prev",
+         },
+        //  https://www.swiper.com.cn/api/grid/491.html
+         slidesPerView: 5,
+       });
+     });
+   },
+ },
+},
+```
+
+#### 轮播点击功能
+
+高亮效果: 动态添加类名
+
+1. 在 data 中设置变量 curIndex 初始化数据
+2. 轮播图片被点击，传递 index 参数给回调函数
+3. 回调函数中将 data 中 curIndex 设置为 index
+
+Zoom 组件跟随效果：
+
+通过全局事件总线将 index 传递给 Zoom 兄弟组件（作为Zoom组件数组图片索引，他们共用的是同一份数据）
+
+## AddCartSuccess
+
+![20221008152609](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/20221008152609.png)
+
+### 查看商品详情
+
+使用 router-link 跳转到当前商品 detail 页面，id: skuObj.id
+
+```html
+<router-link :to="`/detail/${getSkuObj.id}`" class="sui-btn btn-xlarge">
+  查看商品详情
+</router-link>
+```
+
+### 去购物车结算
+
+使用 router-link 跳转到 ShopCart 购物车页面
+
+## ShopCart
+
+### 获取购物车信息
+
+1. 编写请求接口
+2. vuex 三连
+
+### uuid 临时游客身份
+
+需要在发送请求的时候在请求头中携带 userTempId 字段，之后再请求购物车信息的时候，必须有这个 id 才能获取到临时购物车数据
+
+1. 在 detail 的 vuex store 中定义 uuid_token
+2. 创建 utils 文件夹，并定义一个工具函数，用于返回 uuid 注意这个 id 只能生成一个（单例模式）
+```javascript
+import {
+  v4 as uuidv4
+} from 'uuid';
+
+export const genUuid = () => {
+  let uuid_token = window.localStorage.getItem("UUIDTOKEN");
+  // 如果本地没有，生成一个并存储到本地，如果有，直接返回本地的id
+  if (!uuid_token) {
+    uuid_token = uuidv4()
+    window.localStorage.setItem("UUIDTOKEN", uuid_token);
+  }
+  return uuid_token
+}
+```
+
+### 请求数据并渲染
+
+1. 在购物车组件mounted生命周期中请求接口（因为请求接口频繁调用，所以封装成一个methods:getData）
+2. 循环渲染数据
+
+### 商品数量加减操作
+
+加/减/用户输入购物车中的数量都要发请求：
+
+接口：/api/cart/addToCart/{ skuId }/{ skuNum }（addOrUpdateShopCar）
+参数：skuId  skuNum（正数代表增加，负数代表减少）
+
+1. 加/减/用户输入 派发同一个 action, 根据传递的参数来区分：
+   1. type：操作类型
+   2. disNum：增加or减少
+   3. cart：操作对象
+2. 根据参数发送请求
+   1. 节流操作：解决用户点击太快会出现负数
+
+```javascript
+countHandler(flag, disnum, target) {
+  if (flag) {
+    if (flag == "sub") {
+      if (target.skuNum > 1) {
+        disnum = -1;
+      } else {
+        disnum = 0;
+      }
+    } else if (flag == "add") {
+      disnum = 1;
+    } else if (flag == "mod") {
+      if (isNaN(disnum) || disnum < 1) {
+        // 用户输入的数字非法
+        disnum = 0;
+      } else {
+        // 用户输入（正常情况）或者输入的是小数（parseInt）
+        disnum = parseInt(disnum) - target.skuNum;
+      }
+    }
+  }
+  // 向服务器发请求
+  try {
+    this.$store.dispatch("addOrUpdateShopCar", {
+      skuid: target.skuId,
+      skunum: disnum,
+    });
+    this.getData();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+```
+
+### 商品删除操作
+
+请求地址：/api/cart/deleteCart/{skuId}
+请求方式：DELETE
+
+```javascript
+// api
+export const reqDelCartList = (skuid) => {
+  return service({
+    url: `/cart/deleteCart/${skuid}`,
+    method: "delete",
+  })
+}
+```
+
+```javascript
+// vuex
+async delCartList(context, skuid) {
+  const res = await reqDelCartList(skuid);
+  if (res.code == 200) {
+    return 'ok'
+  } else {
+    return Promise.reject(new Error('delete fail!'))
+  }
+}
+```
+
+```javascript
+// shopcart.vue
+// 删除购物车商品
+async deleteGoods(skuId) {
+  try {
+    await this.$store.dispatch("delCartList", skuId);
+    this.getData();
+  } catch (error) {
+    alert(error.message);
+  }
+},
+```
+
+### 商品选中状态修改
+
+```javascript
+// api
+export const reqUpdateCartChecked = (skuid, checknum) => {
+  return service({ 
+    url: `/cart/checkCart/${skuid}/${checknum}`,
+    method: "get",
+  })
+}
+```
+
+```javascript
+// vuex
+async updateCartChecked(context, {
+  skuid,
+  checknum
+}) {
+  const res = await reqUpdateCartChecked(skuid, checknum);
+  if (res.code == 200) {
+    return 'ok'
+  } else {
+    return Promise.reject(new Error('update fail!'))
+  }
+}
+```
+
+```javascript
+// shopcart.vue
+// 商品选中状态修改
+async changeChecked(skuid, event) {
+  let checknum = event.target.checked ? "1" : "0";
+  try {
+    await this.$store.dispatch("updateCartChecked", {
+      skuid: String(skuid),
+      checknum,
+    });
+    this.getData();
+  } catch (error) {
+    alert(error.message);
+  }
+},
+```
+
+### 删除选中的商品
+
+接口：复用删除单个商品的接口
+
+1. 点击删除选中的商品按钮，不传递参数，直接触发一个 action
+2. 在这个 action 中再次触发删除单个商品的 action
+
+```javascript
+// vuex
+// 删除所有选中项 action
+deleteAllCheckedGoods(context) {
+ let cartInfoList = context.getters.cartList.cartInfoList;
+ let promiseState = [];
+ cartInfoList.forEach(item => {
+   // 返回的是一个 Promise
+   let res = item.isChecked == 1 ? this.dispatch('delCartList', item.skuId) : "";
+   promiseState.push(res)
+ })
+ return Promise.all(promiseState);
+}
+```
+
+```javascript
+// shopcart.vue
+// 删除所有选中商品
+async deleteAllCheckedGoods() {
+  try {
+    await this.$store.dispatch("deleteAllCheckedGoods");
+    this.getData();
+  } catch (error) {
+    alert(error.message)
+  }
+},
+```
+
+### 全选反选操作
+
+1. 派发 action 传递复选框状态
+2. action context 中获取所有购物车列表，将状态都改为传递过去的状态

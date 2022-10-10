@@ -5,6 +5,8 @@ import Register from '@/pages/Register'
 import Search from '@/pages/Search'
 import Login from '@/pages/Login'
 import Detail from '@/pages/Detail'
+import AddCartSuccess from '@/pages/AddCartSuccess'
+import ShopCart from '@/pages/ShopCart'
 
 // 解决编程式导航多次执行报错 （NavigationDuplicated）
 
@@ -64,6 +66,20 @@ export default new VueRouter({
   }, {
     path: "/detail/:skuid",
     component: Detail,
+    meta: {
+      showFooter: true
+    }
+  }, {
+    path: "/addcartsuccess",
+    name: "addcartsuccess",
+    component: AddCartSuccess,
+    meta: {
+      showFooter: true
+    }
+  }, {
+    path: "/shopcart",
+    name: "shopcart",
+    component: ShopCart,
     meta: {
       showFooter: true
     }

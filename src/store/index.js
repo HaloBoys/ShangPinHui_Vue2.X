@@ -9,12 +9,14 @@ import "swiper/css/swiper.css"
 import home from './home'
 import search from './search'
 import detail from './detail'
+import shopcart from './shopcart'
 
 //创建并暴露store
 export default new Vuex.Store({
   modules: {
     home,
     search,
-    detail
+    detail,
+    shopcart
   }
 })
