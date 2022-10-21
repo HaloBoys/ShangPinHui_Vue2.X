@@ -60,6 +60,8 @@ module.exports = {
 }
 ```
 
+补充：如果需要在 css 文件中使用 @ 需要在前面加上 `~` 符号
+
 ### 安装 less
 
 注意此处要指定版本，不然不支持 vue2.x
@@ -79,7 +81,7 @@ npm install vue-router@3
 # 路由/非路由组件
 
 路由组件与非路由组件的区别？
-1. 路由组件一般放置在 pages|views 文件夹，非路由组件一般放置components文件夹中
+1. 路由组件一般放置在 pages|views 文件夹，非路由组件一般放置 components 文件夹中
 2. 路由组件一般需要在 router 文件夹中进行注册（使用的即为组件的名字）,非路由组件在使用的时候，一般都是以标签的形式使用
 3. **注册完路由，不管路由路由组件、还是非路由组件身上都有 `$route` 、 `$router` 属性**
 
@@ -129,6 +131,12 @@ routes: [{
 2. Login
 3. Register
 4. Search
+5. Detail
+6. AddCartSuccess
+7. ShopCart
+8. Trade
+9. Pay
+10. Center
 
 目录存放：
 
@@ -241,6 +249,8 @@ export const getBannerList = () => {
 
 # 插件相关
 
+## nprogress
+
 ## Swiper
 
 安装：
@@ -266,6 +276,183 @@ npm install swiper@5
 
 1. 使用 watch 监听 bannerList 数据的变化（当服务器请求回来之后数据就会发生变化）
 2. 在 watch 回调函数中调用组件 nextTick 方法，在 nextTick 中 new Swiper 实例
+
+## mockjs
+
+模拟数据
+
+## qrcode 二维码生成
+
+qrcode github: https://github.com/soldair/node-qrcode
+
+## vue-lazyload 图片懒加载
+
+https://github.com/hilongjw/vue-lazyload
+
+1. 在项目中安装：`npm i vue-lazyload@1.3.3 -S` 【vue2.x】
+2. main.js 中引入
+```javascript
+import VueLazyload from 'vue-lazyload'
+
+Vue.use(VueLazyload)
+
+const loadimage = require('./assets/loading.gif')
+const errorimage = require('./assets/error.gif')
+
+Vue.use(VueLazyload, {
+  preLoad: 1.3,
+  error: errorimage,
+  loading: loadimage,
+  attempt: 1
+})
+```
+3. 在组件中为 `v-lazy` 指令为图片标签绑定
+
+## vee-validate
+
+vee-validate github 地址：github.com/logaretm/vee-validate
+
+快速上手：
+
+1. 安装：npm i vee-validate@2
+2. 在 plugins 文件夹中新建 validate.js 用于定义表单相关的校验规则
+```javascript
+// vee-validate 表单验证插件相关配置
+
+import Vue from "vue";
+import VeeValidate from "vee-validate";
+
+// 中文提示信息
+import zh_CN from "vee-validate/dist/locale/zh_CN";
+
+Vue.use(VeeValidate);
+
+VeeValidate.Validator.localize("zh_CN", {
+  messages: {
+    ...zh_CN.messages,
+    is: (field) => `${field} 必须与登录密码相同`
+  },
+  attributes: {
+    phone: "手机号",
+    code: "验证码",
+    password: "密码",
+    password2: "确认密码",
+    agree: "协议",
+  }
+});
+
+// 自定义校验规则
+
+VeeValidate.Validator.extend('agree', {
+  validate: (value) => {
+    return value;
+  },
+  getMessage: (field) => field + "必须同意"
+})
+```
+3. 在 main.js 中引入 validate.js
+```javascript
+import '@/plugins/validate'
+```
+4. 在需要被验证的表单元素上编写指定规则
+```html
+<div class="content">
+  <label>手机号:</label>
+  <input
+    type="text"
+    placeholder="请输入你的手机号"
+    v-model="phone"
+    name="phone"
+    v-validate="{ required: true, regex: /^1\d{10}$/ }"
+    :class="{ invalid: errors.has('phone') }"
+  />
+  <span class="error-msg">{{ errors.first("phone") }}</span>
+</div>
+<div class="content">
+  <label>验证码:</label>
+  <input
+    type="text"
+    placeholder="请输入验证码"
+    v-model="code"
+    name="code"
+    v-validate="{ required: true, regex: /^\d{6}$/ }"
+    :class="{ invalid: errors.has('code') }"
+  />
+  <button @click="getVerifyCode" class="getverifycode">获取验证码</button>
+  <span class="error-msg">{{ errors.first("code") }}</span>
+</div>
+<div class="content">
+  <label>登录密码:</label>
+  <input
+    type="input"
+    placeholder="请输入你的密码"
+    v-model="password"
+    name="password"
+    v-validate="{
+      required: true,
+      regex: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+    }"
+    :class="{ invalid: errors.has('password') }"
+  />
+  <span class="error-msg">{{ errors.first("password") }}</span>
+</div>
+<div class="content">
+  <label>确认密码:</label>
+  <input
+    type="input"
+    placeholder="确认你的密码"
+    v-model="password2"
+    name="password2"
+    v-validate="{
+      required: true,
+      is: password,
+    }"
+    :class="{ invalid: errors.has('password2') }"
+  />
+  <span class="error-msg">{{ errors.first("password2") }}</span>
+</div>
+<div class="controls">
+  <input
+    name="agree"
+    type="checkbox"
+    v-model="agree"
+    v-validate="{
+      required: true,
+      agree: true,
+    }"
+    :class="{ invalid: errors.has('agree') }"
+  />
+  <span>同意协议并注册《尚品汇用户协议》</span>
+  <span class="error-msg">{{ errors.first("agree") }}</span>
+</div>
+```
+
+## 路由懒加载
+
+路由懒加载：https://router.vuejs.org/zh/guide/advanced/lazy-loading.html
+
+把不同路由对应的组件分割成不同的代码块（动态导入），然后当路由被访问的时候才加载对应组件，这样就更加高效了。
+
+语法：
+
+```javascript
+// import UserDetails from './views/UserDetails'
+// 替换成
+
+const UserDetails = () => import('./views/UserDetails')
+
+const router = createRouter({
+  // ...
+  routes: [{ path: '/users/:id', component: UserDetails }],
+})
+
+// 或者
+
+// const router = createRouter({
+//   // ...
+//   routes: [{ path: '/users/:id', component: () => import('./views/UserDetails') }],
+// })
+```
 
 # 静态组件拆分
 
@@ -852,10 +1039,6 @@ watch: {
       1. 被点击的导航传递 index 索引，回调函数中删除 props 数组中对应的索引:`splice 方法`
       2. 重新发送请求
 
-## Login
-
-## Register
-
 ## Detail
 
 ![20221006165905](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/20221006165905.png)
@@ -1324,3 +1507,387 @@ async deleteAllCheckedGoods() {
 
 1. 派发 action 传递复选框状态
 2. action context 中获取所有购物车列表，将状态都改为传递过去的状态
+
+```javascript
+// vuex
+changeAllGoodsState(context, state) {
+ let cartInfoList = context.getters.cartList.cartInfoList;
+ let stateToNum = state ? '1' : '0';
+ let promiseState = [];
+ cartInfoList.forEach(item => {
+   let res = this.dispatch("updateCartChecked", {
+     skuid: item.skuId,
+     checknum: stateToNum
+   })
+   promiseState.push(res)
+ })
+ return Promise.all(promiseState);
+}
+```
+
+```javascript
+// shopcart.vue
+// 全选反选操作
+async changeAllGoodsState(event) {
+  try {
+    await this.$store.dispatch("changeAllGoodsState", event.target.checked);
+    this.getData();
+  } catch (error) {
+    alert(error.message);
+  }
+},
+```
+
+
+## Register
+
+![20221011171020](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/20221011171020.png)
+
+### 获取验证码
+
+收集表单数据
+   1. phone
+   2. code
+   3. password1
+   4. password2
+   5. agree
+
+1. 点击获取验证码将手机号推送到后台,请求地址：/api/user/passport/sendCode/{phone} method: get
+2. vuex 
+3. 后台将验证码发送到指定的手机号
+4. 完成注册按钮：请求地址：/api/user/passport/register/ method：post 参数：
+   1. phone
+   2. password
+   3. code
+5. 注册成功跳转到登录页
+
+### 表单验证
+
+## Login
+
+![20221011171046](https://raw.githubusercontent.com/HaloBoys/PicGoMyDevice/main/img/20221011171046.png)
+
+请求接口：/api/user/passport/login method: post 参数：phone password
+
+登录成功之后将 token 存储到 vuex 中
+
+### token
+
+token 是用户**登录成功**之后服务器派发的，是用户身份的唯一标识，之后每次请求服务器都要在请求头中携带此 token
+
+持久化存储 token（localStorage）
+
+### 自动登录
+
+请求接口：/api/user/passport/auth/getUserInfo method: Get
+
+需要携带 token 请求此接口
+
+在路由导航守卫中触发此 action 
+
+header 组件中登录状态切换: v-if & v-else
+
+
+### 退出登录
+
+请求地址：/api/user/passport/logout  method: Get
+
+1. 发送请求
+2. 请求成功后，清空 vuex 中的数据和本地存储 token
+3. 跳转到首页 / 登录页
+
+### 导航守卫相关
+
+#### 前置导航守卫
+
+在路由前置守卫中判断 store 中是否有 token 
+
+1. 有 token 相当于已经登录了，再访问 login 页面的时候直接强制跳转到 home
+   1. 已经登录了就不可以跳转到 login 和 register 页面，采用强制跳转
+   2. 登录了，访问正常的页面
+      1. 判断有没有 name 属性（`let name = store.state.user.loginInfo.name;`）有的话直接放行
+      2. 没有 name 属性发送 `autoLogin` dispatch 通过 token 获取 name 属性
+         1. 如果获取失败则代表 token 失效，需要跳转到 login 页面进行重新登录
+2. 没有 token 没有登录: 不能去`交易相关`、不能去`支付相关` pay | paysuccess、不能去`个人中心`
+   1. 通过导航守卫获取跳转路径: `let toPath = to.path;`
+   2. 指定未登录不能访问的页面
+
+```javascript
+router.beforeEach(async (to, from, next) => {
+  next();
+  // 登录相关逻辑
+  let token = store.state.user.token;
+  let name = store.state.user.loginInfo.name;
+  if (token) {
+    // 已登录
+    if (to.path == "/login" || to.path == "/register") {
+      next('/')
+    } else {
+      // 登录了且有用户信息
+      if (name) {
+        next()
+      } else {
+        // 登录了没有用户信息：跳转之前获取用户信息
+        try {
+          await store.dispatch("autoLogin")
+          next();
+        } catch (error) {
+          alert(error);
+          // token 失效，重新登录
+          await store.dispatch("logout")
+          next('/login')
+        }
+      }
+    }
+  } else {
+    /* 
+    如果未登录
+    1. 交易相关（trade)、
+    2. 支付相关（pay、paysuccess)
+    3. 用户中心相关（center)
+    跳转到登录页面
+    */
+    let toPath = to.path;
+    console.log(toPath);
+    if (toPath.indexOf('/trade') != -1 || toPath.indexOf('/pay') != -1 || toPath.indexOf('/center') != -1) {
+      // 通过query 参数保存重定向前要访问的页面
+      next('/login?redirect=' + toPath)
+    } else {
+      // 否则放行
+      next()
+    }
+  }
+})
+```
+
+#### 组件独享守卫
+
+只有从`购物车界面`才能跳转到`交易页面`（创建订单）
+
+```javascript
+{
+path: "/trade",
+name: "trade",
+component: Trade,
+beforeEnter: (to, from, next) => {
+  if (from.path == "/shopcart") {
+    next();
+  } else {
+    next(false);
+  }
+},
+```
+
+只有从`交易页面`（创建订单）页面才能跳转到`支付页面`
+
+```javascript
+path: "/pay",
+name: "pay",
+component: Pay,
+beforeEnter: (to, from, next) => {
+  if (from.path == "/trade") {
+    next();
+  } else {
+    next(false);
+  }
+},
+```
+
+#### 组件内守卫
+
+只有从`支付页面`才能跳转到`支付成功页面`
+
+```javascript
+// PaySuccess.vue
+export default {
+  name: "PaySuccess",
+  beforeRouteEnter(to, from, next) {
+    if (from.path == "/pay") {
+      next();
+    } else {
+      next(false);
+    }
+  },
+};
+```
+
+
+
+### 保留登录前的跳转记录
+
+1. 通过 query 参数保存重定向前要访问的页面
+```javascript
+let toPath = to.path;
+if (toPath.indexOf('/trade') != -1 || toPath.indexOf('/pay') != -1 || toPath.indexOf('/center') != -1) {
+  // 通过query 参数保存重定向前要访问的页面
+  next('/login?redirect=' + toPath)
+} else {
+  // 否则放行
+  next()
+}
+```
+2. 在登录组件中通过查询参数进行判断
+```javascript
+methods: {
+  async loginUser() {
+    try {
+      const { phone, password } = this;
+      await this.$store.dispatch("loginUser", { phone, password });
+      // 在登录组件中通过查询参数进行判断
+      let toPath = this.$route.query.redirect || '/home'
+      /* 
+        看路由当中是否包含query参数
+        1. 有：调到 query 参数指定路由
+        2. 没有：调到 home
+      */
+      this.$router.push(toPath);
+    } catch (error) {
+      alert(error);
+    }
+  },
+},
+```
+
+
+ 
+### 表单验证
+
+## Trade
+
+相关接口：
+
+```javascript
+// reqgetUserAddress 获取用户收货地址信息
+
+/* 
+  请求地址：/api/user/userAddress/auth/findUserAddressList
+  请求方式：get
+*/
+
+export const reqgetUserAddress = () => {
+  return service({
+    url: "/user/userAddress/auth/findUserAddressList",
+    method: "get",
+  })
+}
+
+// reqgetGoodsList 获取商品清单信息
+/* 
+  请求地址：/api/order/auth/trade
+  请求方式：get
+*/
+
+export const reqgetGoodsList = () => {
+  return service({
+    url: "/order/auth/trade",
+    method: "get",
+  })
+}
+```
+
+收货地址：
+
+数据从后台返回，使用循环将地址信息渲染出，通过 isDefault 属性判断是否为默认
+```javascript
+defaultAddressSelect(userAddress, address) {
+  // 排他思想
+  userAddress.forEach((item) => {
+    item.isDefault = "0";
+  });
+  address.isDefault = "1";
+},
+```
+
+提交订单:
+
+根据 tradeNo (交易编号) 向后台获取订单号
+
+API：/api/order/auth/submitOrder?tradeNo={tradeNo} method: post
+
+接口在 main.js 中引入，并挂载到 vue 原型上，以后可以通过 this 访问所有 api 方法 
+
+## Pay
+
+1. 通过订单号获取支付信息
+2. 
+
+不要在生命周期函数中使用 async 函数(解决方案：将异步代码封装成 method 在生命周期函数中调用 method)
+
+根据订单号获取支付信息：
+
+API: /api/payment/weixin/createNative/{orderId}  method: get
+
+```javascript
+// api
+export const reqCreateNative = (orderId) => {
+  return service({
+    url: `/payment/weixin/createNative/${orderId}`,
+    method: "get",
+  })
+}
+```
+
+```javascript
+export default {
+  name: "Pay",
+  data() {
+    return {
+      nativeInfo: {},
+    };
+  },
+  computed: {
+    orderId() {
+      return this.$route.query.orderId;
+    },
+  },
+  mounted() {
+    this.getCreateNative();
+  },
+  methods: {
+    async getCreateNative() {
+      let res = await this.$API.reqCreateNative(this.orderId);
+      console.log(res);
+      if (res.code == 200) {
+        this.nativeInfo = res.data;
+      } else {
+        alert(res.message);
+      }
+    },
+  },
+};
+```
+### 二维码支付
+
+组件：element-ui 按需引入 https://element.eleme.cn/#/zh-CN/component/quickstart + qrcode
+
+## Center 
+
+二级路由
+
+```javascript
+{
+  path: "/center",
+  // 自动重定向
+  redirect: "/center/myorder",
+  name: "center",
+  component: Center,
+  children: [{
+    path: "myorder",
+    name: "myorder",
+    component: MyOrder,
+    meta: {
+      showFooter: true
+    }
+  }, {
+    path: "grouporder",
+    name: "grouporder",
+    component: GroupOrder,
+    meta: {
+      showFooter: true
+    }
+  }],
+  meta: {
+    showFooter: true
+  }
+}],
+```

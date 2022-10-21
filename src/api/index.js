@@ -106,8 +106,170 @@ export const reqDelCartList = (skuid) => {
 */
 
 export const reqUpdateCartChecked = (skuid, checknum) => {
-  return service({ 
+  return service({
     url: `/cart/checkCart/${skuid}/${checknum}`,
+    method: "get",
+  })
+}
+
+// reqGetVerifyCode 获取验证码
+
+/* 
+  请求地址：/api/user/passport/sendCode/{phone} 
+  请求方式：GET
+*/
+
+export const reqGetVerifyCode = (phone) => {
+  return service({
+    url: `/user/passport/sendCode/${phone}`,
+    method: "get",
+  })
+}
+
+// reqRegisterUser 注册用户
+
+/* 
+  请求地址：/api/user/passport/register/
+  请求方式：post
+  请求参数：
+    1. phone
+    2. password
+    3. code
+*/
+
+export const reqRegisterUser = (userInfo) => {
+  return service({
+    url: "/user/passport/register/",
+    data: userInfo,
+    method: "post",
+  })
+}
+
+// reqLoginUser 用户登录
+
+/* 
+  请求地址：/api/user/passport/login
+  请求方式：post
+  请求参数：
+    1. phone
+    2. password
+*/
+
+export const reqLoginUser = (userInfo) => {
+  return service({
+    url: "/user/passport/login/",
+    data: userInfo,
+    method: "post",
+  })
+}
+
+// reqAutoLogin 自动登录接口
+
+/* 
+  请求地址：/api/user/passport/auth/getUserInfo
+  请求方式：get
+*/
+
+export const reqAutoLogin = () => {
+  return service({
+    url: "/user/passport/auth/getUserInfo",
+    method: "get",
+  })
+}
+
+// reqLogout 退出登录
+
+/* 
+  请求地址：/api/user/passport/logout
+  请求方式：get
+*/
+
+export const reqLogout = () => {
+  return service({
+    url: "/user/passport/logout",
+    method: "get",
+  })
+}
+
+// reqgetUserAddress 获取用户收货地址信息
+
+/* 
+  请求地址：/api/user/userAddress/auth/findUserAddressList
+  请求方式：get
+*/
+
+export const reqgetUserAddress = () => {
+  return service({
+    url: "/user/userAddress/auth/findUserAddressList",
+    method: "get",
+  })
+}
+
+// reqgetGoodsList 获取商品清单信息
+/* 
+  请求地址：/api/order/auth/trade
+  请求方式：get
+*/
+
+export const reqgetGoodsList = () => {
+  return service({
+    url: "/order/auth/trade",
+    method: "get",
+  })
+}
+
+// reqgetTradeNo 获取商品清单信息
+/* 
+  请求地址：/api/order/auth/submitOrder?tradeNo={tradeNo}
+  请求方式：post
+*/
+
+export const reqSubmitOrder = (tradeNo, data) => {
+  return service({
+    url: `/order/auth/submitOrder?tradeNo=${tradeNo}`,
+    data,
+    method: "post",
+  })
+}
+
+// reqCreateNative 获取订单支付信息
+/* 
+  请求地址：/api/payment/weixin/createNative/{orderId}
+  请求方式：get
+*/
+
+export const reqCreateNative = (orderId) => {
+  return service({
+    url: `/payment/weixin/createNative/${orderId}`,
+    method: "get",
+  })
+}
+
+
+// reqQueryPayStatus 查询支付订单状态
+/* 
+  请求地址：/api/payment/weixin/queryPayStatus/{orderId}
+  请求方式：get
+*/
+
+export const reqQueryPayStatus = (orderId) => {
+  return service({
+    url: `/payment/weixin/createNative/${orderId}`,
+    method: "get",
+  })
+}
+
+// reqGetMyOderList 获取我的订单列表
+/* 
+  请求地址：/api/order/auth/{page}/{limit}
+  请求方式：get
+*/
+
+export const reqGetMyOderList = (page,limit) => {
+  return service({
+    // page: 当前第几页
+    // limit：每一页展示的数据个数
+    url: `/order/auth/${page}/${limit}`,
     method: "get",
   })
 }

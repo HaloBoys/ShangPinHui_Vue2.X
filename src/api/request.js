@@ -7,6 +7,7 @@ import 'nprogress/nprogress.css';
 
 // uuid 游客临时 token
 import detail_vuex from '@/store/detail/index'
+import user_vuex from '@/store/user/index'
 
 // 1. 利用axios对象的方法create,去创建一个axios实例
 const service = axios.create({
@@ -19,8 +20,13 @@ const service = axios.create({
 // 2. 请求拦截器：在发请求之前，请求拦截器可以检测到，可以在请求发出去之前做一些事情
 service.interceptors.request.use(config => {
   NProgress.start();
+  // 游客身份
   if (detail_vuex.state.uuid_token) {
     config.headers.userTempId = detail_vuex.state.uuid_token;
+  }
+  // 注册用户（Token）
+  if (user_vuex.state.token) {
+    config.headers.token = user_vuex.state.token;
   }
   return config;
 })
